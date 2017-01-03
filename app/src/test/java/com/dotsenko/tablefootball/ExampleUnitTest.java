@@ -1,4 +1,4 @@
-package com.example.webcoding.simpleeventnotebook;
+package com.dotsenko.tablefootball;
 
 import org.junit.Test;
 
