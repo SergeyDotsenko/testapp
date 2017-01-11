@@ -7,7 +7,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -16,23 +15,48 @@ import android.view.View;
 public class GameActivity extends AppCompatActivity implements View.OnTouchListener {
     Game game;
     Ball ball;
+    Field field;
+    int startX=0;
+    int startY=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         GameView gv=new GameView(this);
         gv.setOnTouchListener(this);
+        field=new Field();
         setContentView(gv);
+
     }
 
     @Override
     public boolean onTouch(View view, MotionEvent event) {
-        int x=(int)event.getX();
-        int y=(int)event.getY();
-        ball.setNewBallPosition(x,y,1);
+        //int x=(int)event.getX();
+        //int y=(int)event.getY();
+        //ball.setNewBallPosition(x,y,1);
         if(event.getAction() == MotionEvent.ACTION_DOWN) {
-            Log.d("test", x + "/" + y);
-            ball.setNewBallPosition(x,y,1);
+
+            //ball.setNewBallPosition(x,y,1);
+        }
+        if(event.getAction() == MotionEvent.ACTION_MOVE) {
+            int currentX=(int)event.getX();
+            int currentY=(int)event.getY();
+            if(startX==0){
+                startX=currentX;
+            }
+            if(startY==0){
+                startY=currentY;
+            }
+            int valueX=field.getX()-(startX-currentX);
+            field.setX(valueX);
+            int valueY=field.getY()-(startY-currentY);
+            field.setY(valueY);
+            startX=(int)event.getX();
+            startY=(int)event.getY();
+        }
+        if(event.getAction() == MotionEvent.ACTION_UP) {
+            startX=0;
+            startY=0;
         }
         return true;
     }
@@ -53,11 +77,11 @@ public class GameActivity extends AppCompatActivity implements View.OnTouchListe
 
         @Override
         public void surfaceCreated(SurfaceHolder holder) {
+            game=new Game();
+            ball=new Ball();
             drawThread = new DrawThread(getHolder());
             drawThread.setRunning(true);
             drawThread.start();
-            game=new Game();
-            ball=new Ball();
         }
 
         @Override
@@ -74,24 +98,16 @@ public class GameActivity extends AppCompatActivity implements View.OnTouchListe
         }
 
 
-        /*public boolean onTouch(View view, MotionEvent event) {
-            int x=(int)event.getX();
-            int y=(int)event.getY();
-            //ball.setNewBallPosition(x,y,1);
-            if(event.getAction() == MotionEvent.ACTION_DOWN) {
-                Log.d("test", x + "/" + y);
-            }
-            return true;
-        }*/
-
-
         class DrawThread extends Thread {
 
             private boolean running = false;
             private SurfaceHolder surfaceHolder;
+            private Bitmap field_image;
 
             public DrawThread(SurfaceHolder surfaceHolder) {
+
                 this.surfaceHolder = surfaceHolder;
+                field_image = BitmapFactory.decodeResource(getResources(),R.drawable.field);
             }
 
             public void setRunning(boolean running) {
@@ -108,9 +124,8 @@ public class GameActivity extends AppCompatActivity implements View.OnTouchListe
                         canvas = surfaceHolder.lockCanvas(null);
                         if (canvas == null)
                             continue;
-                        Bitmap field = BitmapFactory.decodeResource(getResources(),R.drawable.field);
-                        canvas.drawBitmap(field,0,0,paint);
-                        ball.drawBallPositions(canvas,paint);
+                        canvas.drawBitmap(field_image,field.getX(),field.getY(),paint);
+                        //ball.drawBallPositions(canvas,paint);
                     } finally {
                         if (canvas != null) {
                             surfaceHolder.unlockCanvasAndPost(canvas);
